@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load monitor_tags %}
+
+{% block title %}System Status - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold">System Status</h1>
+    <p class="text-gray-500">Last updated: {{ last_updated|date:"Y-m-d H:i:s" }}</p>
+</div>
+
+<!-- Overall Status -->
+<div class="bg-white p-6 rounded-lg shadow mb-6">
+    <div class="text-center">
+        <div class="inline-block rounded-full w-24 h-24 flex items-center justify-center mb-3
+            {% if overall_status == 'Operational' %}
+                bg-green-100 text-green-800
+            {% elif overall_status == 'Partial Outage' %}
+                bg-yellow-100 text-yellow-800
+            {% else %}
+                bg-red-100 text-red-800
+            {% endif %}
+        ">
+            <span class="text-xl font-bold">
+                {% if overall_status == 'Operational' %}
+                ✓
+                {% elif overall_status == 'Partial Outage' %}
+                !
+                {% else %}
+                ✕
+                {% endif %}
+            </span>
+        </div>
+        <h2 class="text-xl font-semibold">
+            All Systems
+            {% if overall_status == 'Operational' %}
+            <span class="text-green-600">Operational</span>
+            {% elif overall_status == 'Partial Outage' %}
+            <span class="text-yellow-600">Partially Operational</span>
+            {% else %}
+            <span class="text-red-600">Down</span>
+            {% endif %}
+        </h2>
+    </div>
+</div>
+
+<!-- Monitors Status -->
+<div class="bg-white p-6 rounded-lg shadow mb-6">
+    <h2 class="text-xl font-semibold mb-4">Services</h2>
+    <div class="divide-y divide-gray-200">
+        {% for monitor in monitors %}
+        <div class="py-4">
+            <div class="flex items-center justify-between mb-2">
+                <div>
+                    <div class="font-medium">{{ monitor.name }}</div>
+                    <div class="text-sm text-gray-500">{{ monitor.type }}</div>
+                </div>
+                <div class="flex items-center">
+                    <div class="mr-3">
+                        {% if monitor.status == "Operational" %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            {{ monitor.status }}
+                        </span>
+                        {% elif monitor.status == "Down" %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            {{ monitor.status }}
+                        </span>
+                        {% else %}
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            Unknown
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="text-sm">
+                        {% if monitor.uptime_24h != None %}
+                        {{ monitor.uptime_24h|floatformat:2 }}% uptime (24h)
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-1 mt-2">
+                {% for item in monitor.timeline %}
+                <div class="timeline-item {% if item.status == 'up' %}timeline-up{% elif item.status == 'down' %}timeline-down{% else %}timeline-unknown{% endif %}"
+                    title="{{ item.hour }} - {{ item.status|title }}"></div>
+                {% endfor %}
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500">No monitors available.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Recent Incidents -->
+<div class="bg-white p-6 rounded-lg shadow">
+    <h2 class="text-xl font-semibold mb-4">Recent Incidents</h2>
+
+    {% if incidents %}
+    <div class="divide-y divide-gray-200">
+        {% for incident in incidents %}
+        <div class="py-4">
+            <div class="flex justify-between mb-1">
+                <div class="font-medium">{{ incident.monitor }}</div>
+                <div class="text-sm text-gray-500">
+                    {{ incident.start_time|date:"Y-m-d H:i:s" }}
+                </div>
+            </div>
+            <div class="mt-1 mb-2">
+                {% if incident.resolved_time %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    Resolved
+                </span>
+                <span class="text-sm text-gray-500 ml-2">
+                    Duration: {{ incident.duration }}
+                </span>
+                {% else %}
+                <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                    Ongoing
+                </span>
+                {% endif %}
+            </div>
+            {% if incident.error %}
+            <div class="text-sm text-red-600">
+                {{ incident.error }}
+            </div>
+            {% endif %}
+            {% if incident.resolved_time %}
+            <div class="text-sm text-gray-500">
+                Resolved at: {{ incident.resolved_time|date:"Y-m-d H:i:s" }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="py-8 text-center">
+        <div
+            class="inline-block rounded-full w-16 h-16 flex items-center justify-center mb-3 bg-green-100 text-green-800">
+            <span class="text-xl">✓</span>
+        </div>
+        <p class="text-gray-500">No incidents reported in the last 7 days</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Uptime Statistics -->
+<div class="bg-white p-6 rounded-lg shadow mt-6">
+    <h2 class="text-xl font-semibold mb-4">Uptime Statistics</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {% for monitor in monitors %}
+        <div class="bg-gray-50 p-4 rounded">
+            <div class="font-medium mb-2">{{ monitor.name }}</div>
+            <div class="space-y-2">
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">24 Hours:</span>
+                    <span
+                        class="text-sm font-medium {% if monitor.uptime_24h >= 99.9 %}text-green-600{% elif monitor.uptime_24h >= 99 %}text-green-500{% elif monitor.uptime_24h >= 95 %}text-yellow-500{% elif monitor.uptime_24h != None %}text-red-500{% endif %}">
+                        {% if monitor.uptime_24h != None %}
+                        {{ monitor.uptime_24h|format_uptime }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">7 Days:</span>
+                    <span
+                        class="text-sm font-medium {% if monitor.uptime_7d >= 99.9 %}text-green-600{% elif monitor.uptime_7d >= 99 %}text-green-500{% elif monitor.uptime_7d >= 95 %}text-yellow-500{% elif monitor.uptime_7d != None %}text-red-500{% endif %}">
+                        {% if monitor.uptime_7d != None %}
+                        {{ monitor.uptime_7d|format_uptime }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">30 Days:</span>
+                    <span
+                        class="text-sm font-medium {% if monitor.uptime_30d >= 99.9 %}text-green-600{% elif monitor.uptime_30d >= 99 %}text-green-500{% elif monitor.uptime_30d >= 95 %}text-yellow-500{% elif monitor.uptime_30d != None %}text-red-500{% endif %}">
+                        {% if monitor.uptime_30d != None %}
+                        {{ monitor.uptime_30d|format_uptime }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </span>
+                </div>
+                {% if monitor.avg_response_24h %}
+                <div class="flex justify-between">
+                    <span class="text-sm text-gray-500">Avg Response:</span>
+                    <span class="text-sm font-medium">
+                        {{ monitor.avg_response_24h|floatformat:1 }} ms
+                    </span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

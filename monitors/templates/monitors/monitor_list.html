@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% load monitor_tags %}
+
+{% block title %}Monitors - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Monitors</h1>
+    <a href="{% url 'monitor_create' %}"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+        Add New Monitor
+    </a>
+</div>
+
+{% if monitors %}
+<div class="relative overflow-x-auto">
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-900 uppercase dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Name
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Type
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Status
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Response Time
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Uptime (7d)
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for monitor in monitors %}
+            <tr class="bg-white dark:bg-gray-800">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <a href="{% url 'monitor_detail' monitor.id %}"
+                        class="text-blue-600 dark:text-blue-500 hover:underline">
+                        {{ monitor.name }}
+                    </a>
+                </th>
+                <td class="px-6 py-4">
+                    {{ monitor.type }}
+                </td>
+                <td class="px-6 py-4">
+                    {% if monitor.status == "Up" %}
+                    <span
+                        class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                        {{ monitor.status }}
+                    </span>
+                    {% elif monitor.status == "Down" %}
+                    <span
+                        class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                        {{ monitor.status }}
+                    </span>
+                    {% else %}
+                    <span
+                        class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                        {{ monitor.status }}
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if monitor.response_time %}
+                    {{ monitor.response_time|floatformat:1 }} ms
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if monitor.uptime != None %}
+                    <span class="
+                            {% if monitor.uptime >= 99.9 %}text-green-600 dark:text-green-400
+                            {% elif monitor.uptime >= 99 %}text-green-500 dark:text-green-400
+                            {% elif monitor.uptime >= 95 %}text-yellow-500 dark:text-yellow-300
+                            {% else %}text-red-500 dark:text-red-400{% endif %}">
+                        {{ monitor.uptime|format_uptime }}
+                    </span>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 flex gap-2">
+                    <a href="{% url 'monitor_check_now' monitor.id %}"
+                        class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Check</a>
+                    <a href="{% url 'monitor_edit' monitor.id %}"
+                        class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                    <a href="{% url 'monitor_delete' monitor.id %}"
+                        class="font-medium text-red-600 dark:text-red-500 hover:underline">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="p-8 text-center bg-white dark:bg-gray-800 rounded-lg shadow">
+    <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No monitors created yet</h3>
+    <p class="mb-4 text-gray-500 dark:text-gray-400">Start monitoring your systems by creating your first monitor.</p>
+    <a href="{% url 'monitor_create' %}"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+        Create Your First Monitor
+    </a>
+</div>
+{% endif %}
+{% endblock %}

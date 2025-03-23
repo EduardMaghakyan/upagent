@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+{% load monitor_tags %}
+
+{% block title %}{{ monitor.name }} - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ monitor.name }}</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'monitor_check_now' monitor.id %}" class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+            Check Now
+        </a>
+        <a href="{% url 'monitor_edit' monitor.id %}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800">
+            Edit
+        </a>
+        <a href="{% url 'monitor_delete' monitor.id %}" class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+            Delete
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Monitor Info -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Monitor Information</h2>
+        <dl class="max-w-md text-gray-900 divide-y divide-gray-200 dark:text-white dark:divide-gray-700">
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Type</dt>
+                <dd class="font-semibold">{{ monitor.get_monitor_type_display }}</dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">URL/Host</dt>
+                <dd class="font-semibold">{{ monitor.url }}</dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Check Interval</dt>
+                <dd class="font-semibold">{{ monitor.interval_seconds|format_interval }}</dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Timeout</dt>
+                <dd class="font-semibold">{{ monitor.timeout_seconds }} second{{ monitor.timeout_seconds|pluralize }}</dd>
+            </div>
+            {% if monitor.monitor_type == 'http' and monitor.expected_status_code %}
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Expected Status Code</dt>
+                <dd class="font-semibold">{{ monitor.expected_status_code }}</dd>
+            </div>
+            {% endif %}
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Created</dt>
+                <dd class="font-semibold">{{ monitor.created_at|date:"Y-m-d H:i:s" }}</dd>
+            </div>
+        </dl>
+    </div>
+
+    <!-- Status Overview -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Status Overview</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Current Status</div>
+                <div class="mt-1 text-xl font-semibold 
+                    {% if monitor.current_status == 'Up' %}text-green-600 dark:text-green-400
+                    {% elif monitor.current_status == 'Down' %}text-red-600 dark:text-red-400
+                    {% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                    {{ monitor.current_status }}
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Avg Response (24h)</div>
+                <div class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
+                    {% if avg_response_24h %}
+                        {{ avg_response_24h|floatformat:1 }} ms
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Uptime (24h)</div>
+                <div class="mt-1 text-xl font-semibold
+                    {% if uptime_24h >= 99.9 %}text-green-600 dark:text-green-400
+                    {% elif uptime_24h >= 99 %}text-green-500 dark:text-green-400
+                    {% elif uptime_24h >= 95 %}text-yellow-500 dark:text-yellow-300
+                    {% elif uptime_24h != None %}text-red-500 dark:text-red-400
+                    {% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                    {% if uptime_24h != None %}
+                        {{ uptime_24h|format_uptime }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Uptime (7d)</div>
+                <div class="mt-1 text-xl font-semibold
+                    {% if uptime_7d >= 99.9 %}text-green-600 dark:text-green-400
+                    {% elif uptime_7d >= 99 %}text-green-500 dark:text-green-400
+                    {% elif uptime_7d >= 95 %}text-yellow-500 dark:text-yellow-300
+                    {% elif uptime_7d != None %}text-red-500 dark:text-red-400
+                    {% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                    {% if uptime_7d != None %}
+                        {{ uptime_7d|format_uptime }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Response Time Chart -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Response Time (Last 24 Hours)</h2>
+    <div class="w-full h-64">
+        <canvas id="responseTimeChart"></canvas>
+    </div>
+</div>
+
+<!-- Recent Checks -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Recent Checks</h2>
+    {% if checks %}
+        <div class="relative overflow-x-auto">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                    <tr>
+                        <th scope="col" class="px-6 py-3">
+                            Time
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Status
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Response Time
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Status Code
+                        </th>
+                        <th scope="col" class="px-6 py-3">
+                            Error
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for check in checks %}
+                    <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                        <td class="px-6 py-4">
+                            {{ check.created_at|date:"Y-m-d H:i:s" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if check.is_up %}
+                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                                    Up
+                                </span>
+                            {% else %}
+                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                                    Down
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if check.response_time %}
+                                {{ check.response_time|floatformat:1 }} ms
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {{ check.status_code|default:"-" }}
+                        </td>
+                        <td class="px-6 py-4 text-red-500 dark:text-red-400 max-w-md truncate">
+                            {{ check.error_message|default:"-" }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="text-center p-4">
+            <p class="text-gray-500 dark:text-gray-400">No checks recorded yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Response time chart
+    const chartData = {{ chart_data|safe }};
+    
+    if (chartData && chartData.length > 0) {
+        const ctx = document.getElementById('responseTimeChart').getContext('2d');
+        
+        const labels = chartData.map(item => item.timestamp);
+        const responseTimes = chartData.map(item => item.response_time);
+        
+        // Check if we're in dark mode
+        const isDarkMode = document.documentElement.classList.contains('dark') || 
+                          window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+        const textColor = isDarkMode ? '#9ca3af' : '#6b7280';
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Response Time (ms)',
+                    data: responseTimes,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.1,
+                    fill: true,
+                    pointRadius: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    intersect: false,
+                    mode: 'index',
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Response Time (ms)',
+                            color: textColor
+                        },
+                        grid: {
+                            color: gridColor
+                        },
+                        ticks: {
+                            color: textColor
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45,
+                            color: textColor
+                        },
+                        grid: {
+                            color: gridColor
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: isDarkMode ? 'rgba(17, 24, 39, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+                        titleColor: isDarkMode ? '#e5e7eb' : '#111827',
+                        bodyColor: isDarkMode ? '#e5e7eb' : '#111827',
+                        borderColor: isDarkMode ? 'rgba(55, 65, 81, 1)' : 'rgba(229, 231, 235, 1)',
+                        borderWidth: 1
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('responseTimeChart').innerHTML = '<div class="flex items-center justify-center h-full w-full text-gray-500 dark:text-gray-400">No data available</div>';
+    }
+</script>
+{% endblock %}
