@@ -23,20 +23,33 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "compressor",
+    "django.contrib.sites",
     "monitors",
     "status_page",
     "authentication",
-
 ]
 
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'monitor_list'
-LOGOUT_REDIRECT_URL = 'login'
+SITE_ID = 1
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "monitor_list"
+LOGOUT_REDIRECT_URL = "login"
 
 
+EMAIL_BACKEND = "postmark.backends.PostmarkBackend"
+
+POSTMARK_API_KEY = os.environ.get("POSTMARK_API_KEY", "")
+POSTMARK_SENDER = os.environ.get("POSTMARK_SENDER", "noreply@aassit.ai")
+POSTMARK_TEST_MODE = DEBUG
+POSTMARK_TRACK_OPENS = True
+DEFAULT_FROM_EMAIL = POSTMARK_SENDER
+
+if not POSTMARK_API_KEY:
+    EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    print("WARNING: Postmark API key not set, emails will be sent to console")
+
+RATELIMIT_VIEW = "authentication.views.ratelimit_view"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -45,6 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_ratelimit.middleware.RatelimitMiddleware",
 ]
 
 ROOT_URLCONF = "upagent_monitor.urls"
@@ -62,6 +76,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "authentication.context_processors.email_context",
             ],
         },
     },
@@ -178,3 +193,10 @@ if not DEBUG:
 COMPRESS_ROOT = BASE_DIR / "static"
 COMPRESS_ENABLED = True
 STATICFILES_FINDERS = ("compressor.finders.CompressorFinder",)
+
+
+# Email context variables
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@yourdomain.com")
+COMPANY_NAME = os.environ.get("COMPANY_NAME", "Your Company")
+COMPANY_ADDRESS = os.environ.get("COMPANY_ADDRESS", "")
+UNSUBSCRIBE_URL = os.environ.get("UNSUBSCRIBE_URL", "#")

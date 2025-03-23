@@ -1,0 +1,19 @@
+{# authentication/templates/authentication/email/welcome_email.txt #}
+Welcome to Uptime Monitor!
+
+Hi {{ user.username }},
+
+Thank you for signing up for Uptime Monitor. We're excited to help you keep track of your services' uptime and performance.
+
+Here's how to get started:
+1. Add your first monitor by clicking the "Add New Monitor" button
+2. Configure check intervals and alerts
+3. View your status page to see the health of all your services
+
+Get started here:
+{{ protocol }}://{{ domain }}{% url 'monitor_create' %}
+
+If you have any questions or need help getting set up, reply to this email and we'll be happy to assist you.
+
+Best regards,
+The Uptime Monitor Team

@@ -1,0 +1,22 @@
+{# monitors/templates/monitors/email/monitor_alert.txt #}
+ALERT: {{ monitor.name }} is DOWN
+
+Hi {{ user.username }},
+
+We're detecting that your service {{ monitor.name }} is currently DOWN.
+
+Error Details:
+{{ error_message }}
+
+Monitor Details:
+- URL/Host: {{ monitor.url }}
+- Type: {{ monitor.get_monitor_type_display }}
+- Check Interval: {{ monitor.interval_seconds }} seconds
+
+You can view more details here:
+{{ protocol }}://{{ domain }}{% url 'monitor_detail' monitor.id %}
+
+We'll send you another notification when the service recovers.
+
+Best regards,
+The Uptime Monitor Team

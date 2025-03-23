@@ -1,0 +1,22 @@
+{# monitors/templates/monitors/email/monitor_recovery.txt #}
+RECOVERED: {{ monitor.name }} is back UP
+
+Hi {{ user.username }},
+
+Good news! Your service {{ monitor.name }} is now back online and responding normally.
+
+Recovery Details:
+The service was down for {{ downtime_duration|default:"an unknown amount of time" }}.
+
+Monitor Details:
+- URL/Host: {{ monitor.url }}
+- Type: {{ monitor.get_monitor_type_display }}
+- Check Interval: {{ monitor.interval_seconds }} seconds
+
+You can view more details here:
+{{ protocol }}://{{ domain }}{% url 'monitor_detail' monitor.id %}
+
+We'll continue monitoring your service and notify you of any future issues.
+
+Best regards,
+The Uptime Monitor Team

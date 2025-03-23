@@ -4,6 +4,14 @@ from monitors.services.checks import check_monitor
 import time
 import logging
 
+from django.contrib.auth.models import User
+from authentication.email_utils import (
+    send_monitor_alert_email,
+    send_monitor_recovery_email,
+)
+from django.contrib.sites.models import Site
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,17 +75,31 @@ class Command(BaseCommand):
             self.stdout.write(f"Checking {monitor.name} ({monitor.monitor_type})...")
 
             try:
+                # Get the last check to compare status for recovery
+                last_check = monitor.checks.order_by("-created_at").first()
+                was_up = last_check and last_check.is_up
+
                 # Run the check
                 result = check_monitor(monitor)
 
                 # Create check record in database
-                Check.objects.create(
+                check = Check.objects.create(
                     monitor=monitor,
                     is_up=result["is_up"],
                     response_time=result["response_time"],
                     status_code=result["status_code"],
                     error_message=result["error_message"],
                 )
+
+                # Check if we need to send notifications
+                # Service just went down
+                if was_up and not result["is_up"]:
+                    self._send_down_notification(monitor, result["error_message"])
+
+                # Service just recovered
+                elif not was_up and result["is_up"] and last_check:
+                    downtime_duration = check.created_at - last_check.created_at
+                    self._send_recovery_notification(monitor, downtime_duration)
 
                 # Log the result
                 status = "UP" if result["is_up"] else "DOWN"
@@ -99,4 +121,54 @@ class Command(BaseCommand):
                 logger.exception(f"Error checking monitor {monitor.name}: {str(e)}")
                 self.stdout.write(
                     self.style.ERROR(f"Error checking {monitor.name}: {str(e)}")
+                )
+
+    def _send_down_notification(self, monitor, error_message):
+        """Send notification when a monitor goes down"""
+        self.stdout.write(
+            self.style.WARNING(f"Sending DOWN notification for {monitor.name}")
+        )
+
+        # In a production app, you'd have monitor owners or subscribers
+        # For simplicity, we'll notify all admin users
+        admin_users = User.objects.filter(is_staff=True)
+
+        site = Site.objects.get_current()
+
+        for user in admin_users:
+            try:
+                send_monitor_alert_email(user, monitor, error_message)
+            except Exception as e:
+                logger.exception(
+                    f"Error sending down notification to {user.email}: {str(e)}"
+                )
+
+    def _send_recovery_notification(self, monitor, downtime_duration):
+        """Send notification when a monitor recovers"""
+        self.stdout.write(
+            self.style.WARNING(f"Sending RECOVERY notification for {monitor.name}")
+        )
+
+        # Format duration for readability
+        hours, remainder = divmod(downtime_duration.total_seconds(), 3600)
+        minutes, seconds = divmod(remainder, 60)
+        formatted_duration = ""
+        if hours:
+            formatted_duration += f"{int(hours)} hours "
+        if minutes or hours:
+            formatted_duration += f"{int(minutes)} minutes "
+        formatted_duration += f"{int(seconds)} seconds"
+
+        # In a production app, you'd have monitor owners or subscribers
+        # For simplicity, we'll notify all admin users
+        admin_users = User.objects.filter(is_staff=True)
+
+        site = Site.objects.get_current()
+
+        for user in admin_users:
+            try:
+                send_monitor_recovery_email(user, monitor, formatted_duration)
+            except Exception as e:
+                logger.exception(
+                    f"Error sending recovery notification to {user.email}: {str(e)}"
                 )
