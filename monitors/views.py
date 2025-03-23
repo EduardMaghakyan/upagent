@@ -7,8 +7,10 @@ from datetime import timedelta
 from .models import Monitor, Check
 from .forms import MonitorForm
 from .services.checks import check_monitor
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def monitor_list(request):
     monitors = Monitor.objects.all().order_by("name")
 
@@ -47,6 +49,7 @@ def monitor_list(request):
     )
 
 
+@login_required
 def monitor_create(request):
     if request.method == "POST":
         form = MonitorForm(request.POST)
@@ -62,6 +65,7 @@ def monitor_create(request):
     )
 
 
+@login_required
 def monitor_edit(request, pk):
     monitor = get_object_or_404(Monitor, pk=pk)
 
@@ -81,6 +85,7 @@ def monitor_edit(request, pk):
     )
 
 
+@login_required
 def monitor_delete(request, pk):
     monitor = get_object_or_404(Monitor, pk=pk)
 
@@ -93,6 +98,7 @@ def monitor_delete(request, pk):
     return render(request, "monitors/monitor_confirm_delete.html", {"monitor": monitor})
 
 
+@login_required
 def monitor_check_now(request, pk):
     monitor = get_object_or_404(Monitor, pk=pk)
 
@@ -123,6 +129,7 @@ def monitor_check_now(request, pk):
     return redirect("monitor_list")
 
 
+@login_required
 def monitor_detail(request, pk):
     monitor = get_object_or_404(Monitor, pk=pk)
 

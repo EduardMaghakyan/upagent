@@ -3,8 +3,10 @@ from django.utils import timezone
 from datetime import timedelta
 
 from monitors.models import Monitor
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def status_page(request):
     monitors = Monitor.objects.all().order_by("name")
 
