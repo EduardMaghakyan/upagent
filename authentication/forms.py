@@ -28,3 +28,38 @@ class LoginForm(AuthenticationForm):
     class Meta:
         model = User
         fields = ["username", "password"]
+
+
+class OTPVerificationForm(forms.Form):
+    """Form for OTP verification."""
+
+    otp_code = forms.CharField(
+        label="Verification Code",
+        max_length=6,
+        min_length=6,
+        widget=forms.TextInput(
+            attrs={
+                "class": "bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-gray-600 focus:border-gray-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500",
+                "placeholder": "123456",
+                "autocomplete": "one-time-code",
+                "inputmode": "numeric",
+                "pattern": "[0-9]*",
+            }
+        ),
+        help_text="Enter the 6-digit code sent to your email.",
+    )
+
+
+class TwoFactorSettingsForm(forms.Form):
+    """Form for enabling/disabling two-factor authentication."""
+
+    enable_two_factor = forms.BooleanField(
+        label="Enable Two-Factor Authentication",
+        required=False,
+        widget=forms.CheckboxInput(
+            attrs={
+                "class": "w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-gray-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-gray-600 dark:ring-offset-gray-800",
+            }
+        ),
+        help_text="When enabled, you'll be required to enter a verification code sent to your email each time you log in.",
+    )

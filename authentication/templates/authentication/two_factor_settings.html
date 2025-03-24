@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Two-Factor Authentication Settings - Uptime Monitor{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Two-Factor Authentication Settings</h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-2">Enhance your account security with two-factor authentication.</p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6 mb-6">
+        <div class="flex items-start mb-6">
+            <div class="flex items-center h-5">
+                <svg class="w-10 h-10 text-gray-600 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+            </div>
+            <div class="ml-3 text-sm">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white">What is Two-Factor Authentication?</h3>
+                <p class="text-gray-500 dark:text-gray-400 mt-1">
+                    Two-factor authentication adds an extra layer of security to your account. After entering your password, 
+                    you'll need to provide a verification code sent to your email. This helps protect your account even if 
+                    your password is compromised.
+                </p>
+            </div>
+        </div>
+
+        <div class="p-4 mb-6 {% if two_factor.is_enabled %}bg-green-50 dark:bg-green-900{% else %}bg-yellow-50 dark:bg-yellow-900{% endif %} rounded-lg">
+            <div class="flex items-center">
+                {% if two_factor.is_enabled %}
+                <svg class="w-5 h-5 mr-2 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <h3 class="text-green-700 dark:text-green-400 font-medium">Two-Factor Authentication is Enabled</h3>
+                {% else %}
+                <svg class="w-5 h-5 mr-2 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                </svg>
+                <h3 class="text-yellow-700 dark:text-yellow-400 font-medium">Two-Factor Authentication is Disabled</h3>
+                {% endif %}
+            </div>
+            <p class="ml-7 text-sm {% if two_factor.is_enabled %}text-green-700 dark:text-green-400{% else %}text-yellow-700 dark:text-yellow-400{% endif %}">
+                {% if two_factor.is_enabled %}
+                Your account is protected with two-factor authentication. You'll need to enter a verification code sent to your email each time you log in.
+                {% else %}
+                Your account is less secure. We recommend enabling two-factor authentication to protect against unauthorized access.
+                {% endif %}
+            </p>
+        </div>
+
+        <form method="post" class="mt-6">
+            {% csrf_token %}
+
+            <div class="flex items-start mb-6">
+                <div class="flex items-center h-5">
+                    {{ form.enable_two_factor }}
+                </div>
+                <div class="ml-3 text-sm">
+                    <label for="{{ form.enable_two_factor.id_for_label }}" class="font-medium text-gray-900 dark:text-white">Enable Two-Factor Authentication</label>
+                    <p class="text-gray-500 dark:text-gray-400">{{ form.enable_two_factor.help_text }}</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button type="submit" class="text-white bg-gray-600 hover:bg-gray-700 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                    Save Settings
+                </button>
+                <a href="{% url 'monitor_list' %}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    Back to Monitors
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Security Tips</h2>
+        
+        <ul class="space-y-3 text-gray-500 dark:text-gray-400">
+            <li class="flex items-start">
+                <svg class="w-4 h-4 mt-1 mr-2 text-gray-600 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Keep your email account secure with a strong password and two-factor authentication.</span>
+            </li>
+            <li class="flex items-start">
+                <svg class="w-4 h-4 mt-1 mr-2 text-gray-600 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Never share your verification codes with anyone, including our staff.</span>
+            </li>
+            <li class="flex items-start">
+                <svg class="w-4 h-4 mt-1 mr-2 text-gray-600 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span>Make sure you can access your email account when traveling or away from your regular devices.</span>
+            </li>
+            <li class="flex items-start">
+                <svg class="w-4 h-4 mt-1 mr-2 text-gray-600 dark:text-gray-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                <span>If you suspect unauthorized access to your account, change your password immediately.</span>
+            </li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

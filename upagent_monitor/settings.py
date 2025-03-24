@@ -37,17 +37,21 @@ LOGIN_REDIRECT_URL = "monitor_list"
 LOGOUT_REDIRECT_URL = "login"
 
 
-EMAIL_BACKEND = "postmark.backends.PostmarkBackend"
+EMAIL_BACKEND = "postmarker.django.backend.EmailBackend"
 
-POSTMARK_API_KEY = os.environ.get("POSTMARK_API_KEY", "")
+POSTMARK_TOKEN = os.environ.get("POSTMARK_SERVER_TOKEN", "")
 POSTMARK_SENDER = os.environ.get("POSTMARK_SENDER", "noreply@aassit.ai")
-POSTMARK_TEST_MODE = DEBUG
-POSTMARK_TRACK_OPENS = True
 DEFAULT_FROM_EMAIL = POSTMARK_SENDER
 
-if not POSTMARK_API_KEY:
+if not POSTMARK_TOKEN:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
     print("WARNING: Postmark API key not set, emails will be sent to console")
+
+
+POSTMARK = {
+    "TOKEN": POSTMARK_TOKEN,
+    "SENDER": POSTMARK_SENDER,
+}
 
 RATELIMIT_VIEW = "authentication.views.ratelimit_view"
 MIDDLEWARE = [
@@ -59,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_ratelimit.middleware.RatelimitMiddleware",
+    "authentication.middleware.TwoFactorMiddleware",
 ]
 
 ROOT_URLCONF = "upagent_monitor.urls"
@@ -200,3 +205,11 @@ SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@yourdomain.com")
 COMPANY_NAME = os.environ.get("COMPANY_NAME", "Your Company")
 COMPANY_ADDRESS = os.environ.get("COMPANY_ADDRESS", "")
 UNSUBSCRIBE_URL = os.environ.get("UNSUBSCRIBE_URL", "#")
+
+# Session settings for 2FA
+SESSION_ENGINE = "django.contrib.sessions.backends.db"  # Use database-backed sessions
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 30  # 30 days
+SESSION_COOKIE_SECURE = not DEBUG  # True in production
+
+# Two-factor authentication settings
+TWO_FACTOR_EMAIL_OTP_EXPIRY_MINUTES = 10  # OTP expiry time in minutes
