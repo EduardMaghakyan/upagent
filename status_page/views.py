@@ -92,7 +92,6 @@ def status_page(request):
         checks = list(
             monitor.checks.filter(created_at__gte=seven_days_ago).order_by("created_at")
         )
-
         for i in range(1, len(checks)):
             if checks[i - 1].is_up and not checks[i].is_up:
                 # Found a transition from up to down

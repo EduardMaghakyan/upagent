@@ -15,7 +15,7 @@ def schedule_monitor_on_save(sender, instance, created, **kwargs):
     # Find and remove any existing jobs for this monitor
     for job in scheduler.get_jobs():
         if hasattr(job, "meta") and job.meta.get("monitor_id") == str(instance.id):
-            job.cancel()
+            job.delete()
             break
 
     # Create a new scheduled job
@@ -45,5 +45,5 @@ def remove_monitor_schedule(sender, instance, **kwargs):
     # Find and remove any existing jobs for this monitor
     for job in scheduler.get_jobs():
         if hasattr(job, "meta") and job.meta.get("monitor_id") == str(instance.id):
-            job.cancel()
+            job.delete()
             break

@@ -43,5 +43,7 @@ RUN chmod +x /docker-entrypoint.sh
 # Copy project files
 COPY . .
 
+RUN poetry run python ./manage.py collectstatic --noinput
+
 # Run entrypoint script
 ENTRYPOINT ["/docker-entrypoint.sh"]
