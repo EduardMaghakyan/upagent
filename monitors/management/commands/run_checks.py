@@ -1,10 +1,10 @@
+# monitors/management/commands/run_checks.py
 from django.core.management.base import BaseCommand
 from monitors.models import Monitor, Check
 from monitors.services.checks import check_monitor
 import time
 import logging
 
-from django.contrib.auth.models import User
 from authentication.email_utils import (
     send_monitor_alert_email,
     send_monitor_recovery_email,
@@ -129,19 +129,15 @@ class Command(BaseCommand):
             self.style.WARNING(f"Sending DOWN notification for {monitor.name}")
         )
 
-        # In a production app, you'd have monitor owners or subscribers
-        # For simplicity, we'll notify all admin users
-        admin_users = User.objects.filter(is_staff=True)
+        # Get the monitor owner
+        owner = monitor.owner
 
-        site = Site.objects.get_current()
-
-        for user in admin_users:
-            try:
-                send_monitor_alert_email(user, monitor, error_message)
-            except Exception as e:
-                logger.exception(
-                    f"Error sending down notification to {user.email}: {str(e)}"
-                )
+        try:
+            send_monitor_alert_email(owner, monitor, error_message)
+        except Exception as e:
+            logger.exception(
+                f"Error sending down notification to {owner.email}: {str(e)}"
+            )
 
     def _send_recovery_notification(self, monitor, downtime_duration):
         """Send notification when a monitor recovers"""
@@ -159,16 +155,13 @@ class Command(BaseCommand):
             formatted_duration += f"{int(minutes)} minutes "
         formatted_duration += f"{int(seconds)} seconds"
 
-        # In a production app, you'd have monitor owners or subscribers
-        # For simplicity, we'll notify all admin users
-        admin_users = User.objects.filter(is_staff=True)
-
+        # Get the monitor owner
+        owner = monitor.owner
         site = Site.objects.get_current()
 
-        for user in admin_users:
-            try:
-                send_monitor_recovery_email(user, monitor, formatted_duration)
-            except Exception as e:
-                logger.exception(
-                    f"Error sending recovery notification to {user.email}: {str(e)}"
-                )
+        try:
+            send_monitor_recovery_email(owner, monitor, formatted_duration)
+        except Exception as e:
+            logger.exception(
+                f"Error sending recovery notification to {owner.email}: {str(e)}"
+            )

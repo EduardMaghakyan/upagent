@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
 import uuid
 
 
@@ -22,6 +23,7 @@ class Monitor(models.Model):
     expected_status_code = models.IntegerField(
         default=200, blank=True, null=True, help_text="For HTTP monitors only"
     )
+    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="monitors")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

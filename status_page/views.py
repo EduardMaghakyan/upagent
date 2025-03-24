@@ -8,8 +8,7 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def status_page(request):
-    monitors = Monitor.objects.all().order_by("name")
-
+    monitors = Monitor.objects.filter(owner=request.user).order_by("name")
     # Calculate overall system status
     overall_status = "Operational"
     down_monitors = []

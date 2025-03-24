@@ -1,3 +1,4 @@
+# monitors/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
@@ -8,11 +9,13 @@ from .models import Monitor, Check
 from .forms import MonitorForm
 from .services.checks import check_monitor
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
 
 
 @login_required
 def monitor_list(request):
-    monitors = Monitor.objects.all().order_by("name")
+    # Filter monitors to show only those owned by the current user
+    monitors = Monitor.objects.filter(owner=request.user).order_by("name")
 
     # Get basic status for each monitor
     monitor_data = []
@@ -54,7 +57,10 @@ def monitor_create(request):
     if request.method == "POST":
         form = MonitorForm(request.POST)
         if form.is_valid():
-            monitor = form.save()
+            # Set the owner to the current user before saving
+            monitor = form.save(commit=False)
+            monitor.owner = request.user
+            monitor.save()
             messages.success(request, f'Monitor "{monitor.name}" created successfully')
             return redirect("monitor_list")
     else:
@@ -67,7 +73,11 @@ def monitor_create(request):
 
 @login_required
 def monitor_edit(request, pk):
+    # Get the monitor and verify ownership
     monitor = get_object_or_404(Monitor, pk=pk)
+    if monitor.owner != request.user:
+        messages.error(request, "You don't have permission to edit this monitor")
+        return HttpResponseForbidden("You don't have permission to edit this monitor")
 
     if request.method == "POST":
         form = MonitorForm(request.POST, instance=monitor)
@@ -87,7 +97,11 @@ def monitor_edit(request, pk):
 
 @login_required
 def monitor_delete(request, pk):
+    # Get the monitor and verify ownership
     monitor = get_object_or_404(Monitor, pk=pk)
+    if monitor.owner != request.user:
+        messages.error(request, "You don't have permission to delete this monitor")
+        return HttpResponseForbidden("You don't have permission to delete this monitor")
 
     if request.method == "POST":
         name = monitor.name
@@ -100,7 +114,11 @@ def monitor_delete(request, pk):
 
 @login_required
 def monitor_check_now(request, pk):
+    # Get the monitor and verify ownership
     monitor = get_object_or_404(Monitor, pk=pk)
+    if monitor.owner != request.user:
+        messages.error(request, "You don't have permission to check this monitor")
+        return HttpResponseForbidden("You don't have permission to check this monitor")
 
     try:
         # Run the check manually
@@ -131,7 +149,11 @@ def monitor_check_now(request, pk):
 
 @login_required
 def monitor_detail(request, pk):
+    # Get the monitor and verify ownership
     monitor = get_object_or_404(Monitor, pk=pk)
+    if monitor.owner != request.user:
+        messages.error(request, "You don't have permission to view this monitor")
+        return HttpResponseForbidden("You don't have permission to view this monitor")
 
     # Get the last 100 checks
     checks = monitor.checks.order_by("-created_at")[:100]
