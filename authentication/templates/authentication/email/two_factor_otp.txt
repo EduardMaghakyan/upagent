@@ -3,7 +3,7 @@ Login Verification Code
 
 Hi {{ user.username }},
 
-You've requested to log in to your Uptime Monitor account. Use the following verification code to complete your login:
+You've requested to log in to your UptimeSense account. Use the following verification code to complete your login:
 
 {{ otp_code.code }}
 
@@ -12,4 +12,4 @@ This code will expire in {{ expiry_minutes }} minutes and can only be used once.
 Security Notice: If you didn't request this code, please ignore this email or contact support immediately as someone may be trying to access your account.
 
 Best regards,
-The Uptime Monitor Team
+The UptimeSense Team

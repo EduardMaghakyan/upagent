@@ -51,10 +51,10 @@ def send_welcome_email(user):
     Returns:
         bool: True if email was sent successfully, False otherwise
     """
-    subject = "Welcome to Uptime Monitor!"
+    subject = "Welcome to UptimeSense!"
     context = {
         "user": user,
-        "site_name": "Uptime Monitor",
+        "site_name": "UptimeSense",
     }
     return send_templated_email(
         subject,
@@ -82,7 +82,7 @@ def send_monitor_alert_email(user, monitor, error_message):
         "user": user,
         "monitor": monitor,
         "error_message": error_message,
-        "site_name": "Uptime Monitor",
+        "site_name": "UptimeSense",
     }
     return send_templated_email(
         subject,
@@ -110,7 +110,7 @@ def send_monitor_recovery_email(user, monitor, downtime_duration):
         "user": user,
         "monitor": monitor,
         "downtime_duration": downtime_duration,
-        "site_name": "Uptime Monitor",
+        "site_name": "UptimeSense",
     }
     return send_templated_email(
         subject,

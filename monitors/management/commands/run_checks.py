@@ -157,7 +157,6 @@ class Command(BaseCommand):
 
         # Get the monitor owner
         owner = monitor.owner
-        site = Site.objects.get_current()
 
         try:
             send_monitor_recovery_email(owner, monitor, formatted_duration)

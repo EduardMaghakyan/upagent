@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:17-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=upagent
+      - POSTGRES_PASSWORD=upagent_password
+      - POSTGRES_DB=upagent_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U upagent"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis for RQ
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Django Web Application with autoreload
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # RQ Worker
+  rq_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py rqworker default high low
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - web
+      - redis
+
+  # RQ Scheduler
+  rq_scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py rqscheduler
+    volumes:
+      - .:/app
+    env_file:
+      - ./.env
+    depends_on:
+      - web
+      - redis
+
+volumes:
+  postgres_data:
+  redis_data:

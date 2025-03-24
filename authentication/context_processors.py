@@ -9,7 +9,7 @@ def email_context(request=None):
     This can be used both in request context and directly in email templates.
     """
     return {
-        "site_name": getattr(settings, "SITE_NAME", "Uptime Monitor"),
+        "site_name": getattr(settings, "SITE_NAME", "UptimeSense"),
         "support_email": getattr(settings, "SUPPORT_EMAIL", "support@yourdomain.com"),
         "company_address": getattr(settings, "COMPANY_ADDRESS", ""),
         "company_name": getattr(settings, "COMPANY_NAME", "Your Company"),

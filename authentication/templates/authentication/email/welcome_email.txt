@@ -1,9 +1,9 @@
 {# authentication/templates/authentication/email/welcome_email.txt #}
-Welcome to Uptime Monitor!
+Welcome to UptimeSense!
 
 Hi {{ user.username }},
 
-Thank you for signing up for Uptime Monitor. We're excited to help you keep track of your services' uptime and performance.
+Thank you for signing up for UptimeSense. We're excited to help you keep track of your services' uptime and performance.
 
 Here's how to get started:
 1. Add your first monitor by clicking the "Add New Monitor" button
@@ -16,4 +16,4 @@ Get started here:
 If you have any questions or need help getting set up, reply to this email and we'll be happy to assist you.
 
 Best regards,
-The Uptime Monitor Team
+The UptimeSense Team

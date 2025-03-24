@@ -19,4 +19,4 @@ You can view more details here:
 We'll send you another notification when the service recovers.
 
 Best regards,
-The Uptime Monitor Team
+The UptimeSense Team

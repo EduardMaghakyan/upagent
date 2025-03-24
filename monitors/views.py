@@ -1,4 +1,4 @@
-# monitors/views.py
+import django_rq
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
@@ -197,5 +197,45 @@ def monitor_detail(request, pk):
             "avg_response_24h": avg_response_24h,
             "avg_response_7d": avg_response_7d,
             "chart_data": json.dumps(chart_data),
+        },
+    )
+
+
+@login_required
+def scheduler_status(request):
+    """View to show the status of scheduled jobs"""
+    if not request.user.is_staff:
+        messages.error(request, "You don't have permission to view this page")
+        return redirect("monitor_list")
+
+    scheduler = django_rq.get_scheduler()
+    jobs = scheduler.get_jobs()
+
+    job_data = []
+    for job in jobs:
+        meta = job.meta if hasattr(job, "meta") else {}
+        next_run = (
+            job.next_run_time.strftime("%Y-%m-%d %H:%M:%S")
+            if job.next_run_time
+            else "N/A"
+        )
+
+        job_data.append(
+            {
+                "id": job.id,
+                "monitor_name": meta.get("monitor_name", "Unknown"),
+                "monitor_id": meta.get("monitor_id", "Unknown"),
+                "interval": meta.get("interval", "Unknown"),
+                "next_run": next_run,
+                "scheduled_at": meta.get("scheduled_at", "Unknown"),
+            }
+        )
+
+    return render(
+        request,
+        "monitors/scheduler_status.html",
+        {
+            "jobs": job_data,
+            "job_count": len(job_data),
         },
     )

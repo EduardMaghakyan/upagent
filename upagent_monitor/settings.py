@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "compressor",
     "django.contrib.sites",
+    "django_rq",
     "monitors",
     "status_page",
     "authentication",
@@ -213,3 +214,34 @@ SESSION_COOKIE_SECURE = not DEBUG  # True in production
 
 # Two-factor authentication settings
 TWO_FACTOR_EMAIL_OTP_EXPIRY_MINUTES = 10  # OTP expiry time in minutes
+
+
+# RQ settings
+RQ_QUEUES = {
+    "default": {
+        "URL": os.environ.get("RQ_REDIS_URL", "redis://redis:6379/0"),
+        "DEFAULT_TIMEOUT": 360,
+    },
+    "high": {
+        "URL": os.environ.get("RQ_REDIS_URL", "redis://redis:6379/0"),
+        "DEFAULT_TIMEOUT": 360,
+    },
+    "low": {
+        "URL": os.environ.get("RQ_REDIS_URL", "redis://redis:6379/0"),
+        "DEFAULT_TIMEOUT": 360,
+    },
+}
+
+# If you want to use password for Redis
+# RQ_QUEUES = {
+#     'default': {
+#         'HOST': 'localhost',
+#         'PORT': 6379,
+#         'DB': 0,
+#         'PASSWORD': 'your-password',
+#         'DEFAULT_TIMEOUT': 360,
+#     },
+#     # ... other queues
+# }
+
+RQ_SCHEDULER_QUEUE = "default"
