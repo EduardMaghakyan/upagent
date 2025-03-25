@@ -156,7 +156,7 @@ def monitor_detail(request, pk):
         return HttpResponseForbidden("You don't have permission to view this monitor")
 
     # Get the last 100 checks
-    checks = monitor.checks.order_by("-created_at")[:100]
+    checks = monitor.checks.order_by("-created_at")[:20]
 
     # Get uptime percentages for different time periods
     uptime_24h = monitor.uptime_percentage(days=1)
