@@ -9,7 +9,7 @@ def check_http_monitor(monitor):
     """
     start_time = time.time()
     try:
-        response = requests.get(
+        response = requests.head(
             monitor.url, timeout=monitor.timeout_seconds, allow_redirects=True
         )
         end_time = time.time()
