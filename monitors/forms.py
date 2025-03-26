@@ -6,7 +6,7 @@ class MonitorForm(forms.ModelForm):
     # Add choices for time intervals
     INTERVAL_CHOICES = [
         # (30, "30 seconds"),
-        # (60, "1 minute"),
+        (60, "1 minute"),
         (300, "5 minutes"),
         (600, "10 minutes"),
         (900, "15 minutes"),

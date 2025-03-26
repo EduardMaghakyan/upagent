@@ -37,7 +37,6 @@ class Monitor(models.Model):
         return "Up" if last_check.is_up else "Down"
 
     def uptime_percentage(self, days=7):
-        """Calculate uptime percentage for the last 'days' days"""
         start_date = timezone.now() - timezone.timedelta(days=days)
         checks = self.checks.filter(created_at__gte=start_date)
         if not checks:
@@ -46,7 +45,6 @@ class Monitor(models.Model):
         return (up_count / checks.count()) * 100
 
     def average_response_time(self, days=1):
-        """Calculate average response time for the last 'days' days"""
         start_date = timezone.now() - timezone.timedelta(days=days)
         checks = self.checks.filter(created_at__gte=start_date, is_up=True)
         if not checks:

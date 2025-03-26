@@ -57,7 +57,13 @@ def monitor_create(request):
     if request.method == "POST":
         form = MonitorForm(request.POST)
         if form.is_valid():
-            # Set the owner to the current user before saving
+            if Monitor.objects.filter(owner=request.user).count() >= 3:
+                messages.error(request, "You can only create up to 3 monitors in the free plan")
+                return render(
+                    request,
+                    "monitors/monitor_form.html",
+                    {"form": form, "title": "Create Monitor"},
+                )
             monitor = form.save(commit=False)
             monitor.owner = request.user
             monitor.save()

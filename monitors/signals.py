@@ -9,25 +9,21 @@ from monitors.tasks import perform_check
 
 @receiver(post_save, sender=Monitor)
 def schedule_monitor_on_save(sender, instance, created, **kwargs):
-    """When a monitor is saved, update its schedule"""
     scheduler = django_rq.get_scheduler()
 
-    # Find and remove any existing jobs for this monitor
     for job in scheduler.get_jobs():
         if hasattr(job, "meta") and job.meta.get("monitor_id") == str(instance.id):
             job.delete()
             break
 
-    # Create a new scheduled job
     job = scheduler.schedule(
         scheduled_time=timezone.now(),
         func=perform_check,
         args=[str(instance.id)],
         interval=instance.interval_seconds,
-        repeat=None,  # Repeat indefinitely
+        repeat=None,
     )
 
-    # Store metadata about this job
     job.meta = {
         "monitor_id": str(instance.id),
         "monitor_name": instance.name,
@@ -39,10 +35,8 @@ def schedule_monitor_on_save(sender, instance, created, **kwargs):
 
 @receiver(post_delete, sender=Monitor)
 def remove_monitor_schedule(sender, instance, **kwargs):
-    """When a monitor is deleted, remove its scheduled job"""
     scheduler = django_rq.get_scheduler()
 
-    # Find and remove any existing jobs for this monitor
     for job in scheduler.get_jobs():
         if hasattr(job, "meta") and job.meta.get("monitor_id") == str(instance.id):
             job.delete()
