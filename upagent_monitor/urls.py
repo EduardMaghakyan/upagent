@@ -9,6 +9,7 @@ urlpatterns = [
     path("status/", include("status_page.urls")),
     path("accounts/", include("authentication.urls")),
     path("django-rq/", include("django_rq.urls")),
+    path("support/", include("support.urls")),
 ]
 
 

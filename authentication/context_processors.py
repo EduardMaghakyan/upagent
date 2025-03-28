@@ -10,7 +10,7 @@ def email_context(request=None):
     """
     return {
         "site_name": getattr(settings, "SITE_NAME", "UptimeSense"),
-        "support_email": getattr(settings, "SUPPORT_EMAIL", "support@yourdomain.com"),
+        "support_email": getattr(settings, "SUPPORT_EMAIL", "support@uptimesense.com"),
         "company_address": getattr(settings, "COMPANY_ADDRESS", ""),
         "company_name": getattr(settings, "COMPANY_NAME", "Your Company"),
         "unsubscribe_url": getattr(settings, "UNSUBSCRIBE_URL", "#"),

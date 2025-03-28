@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     "monitors",
     "status_page",
     "authentication",
+    "support",
 ]
 
 SITE_ID = 1
@@ -192,7 +193,8 @@ STATICFILES_FINDERS = ("compressor.finders.CompressorFinder",)
 
 
 # Email context variables
-SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@yourdomain.com")
+SITE_URL = os.environ.get("SITE_URL", "https://www.uptimesense.com/")
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@uptimesense.com")
 COMPANY_NAME = os.environ.get("COMPANY_NAME", "Your Company")
 COMPANY_ADDRESS = os.environ.get("COMPANY_ADDRESS", "")
 UNSUBSCRIBE_URL = os.environ.get("UNSUBSCRIBE_URL", "#")

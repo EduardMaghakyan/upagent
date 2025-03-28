@@ -1,0 +1,21 @@
+NEW SUPPORT REQUEST
+
+A new support request has been submitted through the contact form:
+
+From: {{ support_request.name }} <{{ support_request.email }}>
+Subject: {{ support_request.subject }}
+Priority: {{ support_request.get_priority_display }}
+Date: {{ support_request.created_at|date:"Y-m-d H:i:s" }}
+
+Message:
+{{ support_request.message }}
+
+{% if admin_url %}
+You can view and manage this request in the admin panel:
+{{ admin_url }}
+{% endif %}
+
+You can reply directly to this email to respond to the customer.
+
+--
+UptimeSense Support System
