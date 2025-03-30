@@ -54,9 +54,6 @@ def send_support_notification(support_request):
     """Send email notification for new support requests"""
     subject = f"New Support Request: {support_request.subject}"
 
-    # Get admin email from settings or use a default
-    admin_email = getattr(settings, "SUPPORT_EMAIL", "support@uptimesense.com")
-
     # Prepare context for templates
     context = {
         "support_request": support_request,

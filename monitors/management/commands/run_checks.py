@@ -1,4 +1,3 @@
-# monitors/management/commands/run_checks.py
 from django.core.management.base import BaseCommand
 from monitors.models import Monitor, Check
 from monitors.services.checks import check_monitor
@@ -9,7 +8,6 @@ from authentication.email_utils import (
     send_monitor_alert_email,
     send_monitor_recovery_email,
 )
-from django.contrib.sites.models import Site
 
 
 logger = logging.getLogger(__name__)

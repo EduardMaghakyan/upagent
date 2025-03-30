@@ -49,7 +49,6 @@ def send_otp_email(user, otp_code, request=None):
 
 
 def verify_otp_code(user, code):
-    """Verify if the provided OTP code is valid for the user."""
     try:
         otp = OTPCode.objects.get(
             user=user, code=code, is_used=False, expires_at__gt=timezone.now()
@@ -61,16 +60,14 @@ def verify_otp_code(user, code):
 
 
 def create_two_factor_session(user, session_key):
-    """Create a new two-factor session for the user."""
     session = TwoFactorSession(user=user, session_key=session_key)
     session.save()
     return session
 
 
 def verify_two_factor_session(user, session_key):
-    """Verify if the user has a valid two-factor session."""
     try:
-        session = TwoFactorSession.objects.get(
+        TwoFactorSession.objects.get(
             user=user, session_key=session_key, expires_at__gt=timezone.now()
         )
         return True
@@ -79,7 +76,6 @@ def verify_two_factor_session(user, session_key):
 
 
 def is_two_factor_enabled(user):
-    """Check if two-factor authentication is enabled for the user."""
     try:
         return user.two_factor.is_enabled
     except (TwoFactorAuth.DoesNotExist, AttributeError):

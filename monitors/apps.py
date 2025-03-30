@@ -6,4 +6,4 @@ class MonitorsConfig(AppConfig):
     name = "monitors"
 
     def ready(self):
-        import monitors.signals  # Import signals when app is ready
+        import monitors.signals  # noqa: F401
