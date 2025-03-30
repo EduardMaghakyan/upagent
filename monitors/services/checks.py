@@ -1,8 +1,6 @@
-# monitors/services/checks.py - Updated to use request_method
-
 import time
 import requests
-from icmplib import ping
+import socket
 
 
 def check_http_monitor(monitor):
@@ -64,31 +62,44 @@ def check_http_monitor(monitor):
 
 
 def check_ping_monitor(monitor):
-    """
-    Check a ping monitor and return the result
-    """
+    host = monitor.url
+    port = 80  # Default to checking HTTP port, you could make this configurable
+
+    start_time = time.time()
+    is_up = False
+    error_message = None
+
     try:
-        host = monitor.url
-        ping_result = ping(host, count=4, interval=0.2, timeout=monitor.timeout_seconds)
+        # Create socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(monitor.timeout_seconds)
 
-        is_up = ping_result.is_alive
-        response_time_ms = ping_result.avg_rtt if is_up else None
+        # Attempt to connect
+        result = sock.connect_ex((host, port))
+        is_up = result == 0
 
-        return {
-            "is_up": is_up,
-            "response_time": response_time_ms,
-            "status_code": None,
-            "error_message": (
-                None if is_up else "Host is not responding to ICMP echo requests"
-            ),
-        }
+        if not is_up:
+            error_message = f"TCP connection failed with error code {result}"
+
+        # Calculate response time
+        end_time = time.time()
+        response_time_ms = (end_time - start_time) * 1000 if is_up else None
+
+        sock.close()
+
+    except socket.gaierror:
+        error_message = "Host name resolution failed"
+    except socket.timeout:
+        error_message = "Connection timed out"
     except Exception as e:
-        return {
-            "is_up": False,
-            "response_time": None,
-            "status_code": None,
-            "error_message": str(e),
-        }
+        error_message = str(e)
+
+    return {
+        "is_up": is_up,
+        "response_time": response_time_ms,
+        "status_code": None,
+        "error_message": error_message,
+    }
 
 
 def check_monitor(monitor):
