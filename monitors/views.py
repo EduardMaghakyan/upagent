@@ -36,6 +36,7 @@ def monitor_list(request):
                 "name": monitor.name,
                 "type": monitor.get_monitor_type_display(),
                 "url": monitor.url,
+                "request_method": monitor.request_method,
                 "status": status,
                 "response_time": response_time,
                 "last_checked": last_checked,
@@ -58,7 +59,9 @@ def monitor_create(request):
         form = MonitorForm(request.POST)
         if form.is_valid():
             if Monitor.objects.filter(owner=request.user).count() >= 3:
-                messages.error(request, "You can only create up to 3 monitors in the free plan")
+                messages.error(
+                    request, "You can only create up to 3 monitors in the free plan"
+                )
                 return render(
                     request,
                     "monitors/monitor_form.html",

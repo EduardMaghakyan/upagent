@@ -10,9 +10,10 @@
 <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
     <form method="post" novalidate>
         {% csrf_token %}
-        
+
         {% for field in form %}
-        <div class="mb-5">
+        <div
+            class="mb-5 {% if field.name == 'request_method' %}http-only-field{% endif %} {% if field.name == 'expected_status_code' %}http-only-field{% endif %}">
             <label for="{{ field.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                 {{ field.label }}
                 {% if field.required %}
@@ -20,14 +21,13 @@
                 {% endif %}
                 {{ field.choices }}
             </label>
-            
-            
+
             {{ field }}
-            
+
             {% if field.help_text %}
             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">{{ field.help_text }}</p>
             {% endif %}
-            
+
             {% if field.errors %}
             <div class="mt-2 text-sm text-red-600 dark:text-red-500">
                 {% for error in field.errors %}
@@ -37,15 +37,43 @@
             {% endif %}
         </div>
         {% endfor %}
-        
+
         <div class="mt-6 flex flex-wrap gap-2">
-            <button type="submit" class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+            <button type="submit"
+                class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
                 Save
             </button>
-            <a href="{% url 'monitor_list' %}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+            <a href="{% url 'monitor_list' %}"
+                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
                 Cancel
             </a>
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to toggle HTTP-specific fields
+    function toggleHttpFields() {
+        const monitorType = document.getElementById('id_monitor_type').value;
+        const httpOnlyFields = document.querySelectorAll('.http-only-field');
+
+        httpOnlyFields.forEach(field => {
+            if (monitorType === 'http') {
+                field.style.display = 'block';
+            } else {
+                field.style.display = 'none';
+            }
+        });
+    }
+
+    // Run on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        toggleHttpFields();
+
+        // Listen for changes to the monitor type
+        document.getElementById('id_monitor_type').addEventListener('change', toggleHttpFields);
+    });
+</script>
 {% endblock %}

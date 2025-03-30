@@ -10,12 +10,28 @@ class Monitor(models.Model):
         ("ping", "PING"),
     )
 
+    HTTP_METHODS = (
+        ("GET", "GET"),
+        ("POST", "POST"),
+        ("PUT", "PUT"),
+        ("PATCH", "PATCH"),
+        ("DELETE", "DELETE"),
+        ("OPTIONS", "OPTIONS"),
+        ("HEAD", "HEAD"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     url = models.CharField(
         max_length=255, help_text="URL for HTTP or IP address for PING"
     )
     monitor_type = models.CharField(max_length=10, choices=MONITOR_TYPES)
+    request_method = models.CharField(
+        max_length=10,
+        choices=HTTP_METHODS,
+        default="GET",
+        help_text="HTTP request method (HTTP monitors only)",
+    )
     interval_seconds = models.IntegerField(
         default=300, help_text="Check interval (30s to 24h)"
     )

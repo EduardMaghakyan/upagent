@@ -13,7 +13,7 @@
 </div>
 
 {% if monitors %}
-<div class="relative overflow-x-auto">
+<div class="relative overflow-x-auto rounded-lg">
     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
         <thead class="text-xs text-gray-900 uppercase dark:text-gray-400">
             <tr>
@@ -22,6 +22,9 @@
                 </th>
                 <th scope="col" class="px-6 py-3">
                     Type
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Method
                 </th>
                 <th scope="col" class="px-6 py-3">
                     Status
@@ -48,6 +51,16 @@
                 </th>
                 <td class="px-6 py-4">
                     {{ monitor.type }}
+                </td>
+                <td class="px-6 py-4">
+                    {% if monitor.request_method and monitor.type == 'HTTP' %}
+                    <span
+                        class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300">
+                        {{ monitor.request_method }}
+                    </span>
+                    {% else %}
+                    -
+                    {% endif %}
                 </td>
                 <td class="px-6 py-4">
                     {% if monitor.status == "Up" %}

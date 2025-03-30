@@ -37,6 +37,7 @@ class MonitorForm(forms.ModelForm):
             "name",
             "url",
             "monitor_type",
+            "request_method",
             "interval_seconds",
             "timeout_seconds",
             "expected_status_code",
@@ -54,6 +55,11 @@ class MonitorForm(forms.ModelForm):
                 }
             ),
             "monitor_type": forms.Select(
+                attrs={
+                    "class": "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
+                }
+            ),
+            "request_method": forms.Select(
                 attrs={
                     "class": "bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-gray-500 focus:border-gray-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-gray-500 dark:focus:border-gray-500"
                 }
@@ -77,9 +83,12 @@ class MonitorForm(forms.ModelForm):
         monitor_type = cleaned_data.get("monitor_type")
         expected_status_code = cleaned_data.get("expected_status_code")
 
-        # Only HTTP monitors need expected_status_code
-        if monitor_type == "ping" and expected_status_code is not None:
-            cleaned_data["expected_status_code"] = None
+        # Only HTTP monitors need expected_status_code and request_method
+        if monitor_type == "ping":
+            if expected_status_code is not None:
+                cleaned_data["expected_status_code"] = None
+            # Reset request_method to GET for PING monitors (it won't be used)
+            cleaned_data["request_method"] = "GET"
 
         # Convert interval_seconds from string to integer
         interval = cleaned_data.get("interval_seconds")

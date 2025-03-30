@@ -1,3 +1,5 @@
+# monitors/services/checks.py - Updated to use request_method
+
 import time
 import requests
 from icmplib import ping
@@ -9,9 +11,30 @@ def check_http_monitor(monitor):
     """
     start_time = time.time()
     try:
-        response = requests.head(
-            monitor.url, timeout=monitor.timeout_seconds, allow_redirects=True
-        )
+        # Select the appropriate method from the requests library based on monitor.request_method
+        method = getattr(requests, monitor.request_method.lower())
+
+        # For methods that don't typically include a body, use head() for HEAD method
+        # and send empty data for other methods
+        if monitor.request_method == "HEAD":
+            response = requests.head(
+                monitor.url, timeout=monitor.timeout_seconds, allow_redirects=True
+            )
+        elif monitor.request_method in ["POST", "PUT", "PATCH"]:
+            # For methods that typically have a body, send an empty JSON body
+            # This could be expanded to allow custom request bodies in the future
+            response = method(
+                monitor.url,
+                timeout=monitor.timeout_seconds,
+                allow_redirects=True,
+                json={},  # Empty JSON body
+            )
+        else:
+            # GET, DELETE, OPTIONS
+            response = method(
+                monitor.url, timeout=monitor.timeout_seconds, allow_redirects=True
+            )
+
         end_time = time.time()
         response_time_ms = (end_time - start_time) * 1000
 
