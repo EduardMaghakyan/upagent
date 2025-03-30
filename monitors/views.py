@@ -58,9 +58,9 @@ def monitor_create(request):
     if request.method == "POST":
         form = MonitorForm(request.POST)
         if form.is_valid():
-            if Monitor.objects.filter(owner=request.user).count() >= 3:
+            if Monitor.objects.filter(owner=request.user).count() >= 5:
                 messages.error(
-                    request, "You can only create up to 3 monitors in the free plan"
+                    request, "You can only create up to 5 monitors in the free plan"
                 )
                 return render(
                     request,
