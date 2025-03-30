@@ -29,7 +29,7 @@ class Monitor(models.Model):
     request_method = models.CharField(
         max_length=10,
         choices=HTTP_METHODS,
-        default="GET",
+        default="HEAD",
         help_text="HTTP request method (HTTP monitors only)",
     )
     interval_seconds = models.IntegerField(
