@@ -57,6 +57,7 @@ def monitor_list(request):
 def monitor_create(request):
     if request.method == "POST":
         form = MonitorForm(request.POST)
+        form.user = request.user
         if form.is_valid():
             if Monitor.objects.filter(owner=request.user).count() >= 5:
                 messages.error(
@@ -90,6 +91,7 @@ def monitor_edit(request, pk):
 
     if request.method == "POST":
         form = MonitorForm(request.POST, instance=monitor)
+        form.user = request.user
         if form.is_valid():
             monitor = form.save()
             messages.success(request, f'Monitor "{monitor.name}" updated successfully')
