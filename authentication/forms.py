@@ -16,6 +16,12 @@ class RegisterForm(UserCreationForm):
         for fieldname in ["username", "password1", "password2"]:
             self.fields[fieldname].help_text = None
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("This email address is already in use. Please use a different email.")
+        return email
+
     def save(self, commit=True):
         user = super(RegisterForm, self).save(commit=False)
         user.email = self.cleaned_data["email"]
