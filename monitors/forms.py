@@ -102,5 +102,17 @@ class MonitorForm(forms.ModelForm):
                 self.add_error(
                     "timeout_seconds", "Timeout must be less than 120 seconds"
                 )
+        
+        # Prevent non-admin users from adding monitors with "uptimesense" in the URL
+        url = cleaned_data.get("url", "")
+        if url and "uptimesense" in url.lower():
+            # Get the current user from the form's request
+            user = getattr(self, 'user', None)
+            
+            # Only allow if the user is an admin
+            if not user or not user.is_staff:
+                self.add_error(
+                    "url", "Monitors for 'uptimesense' domains can't be added."
+                )
 
         return cleaned_data
