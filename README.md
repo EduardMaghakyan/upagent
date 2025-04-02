@@ -22,3 +22,4 @@ docker-compose exec web python manage.py shell
 docker-compose exec db psql -U upagent upagent_db
 docker-compose exec redis redis-cli
 ```
+
