@@ -44,6 +44,7 @@ RUN chmod +x /docker-entrypoint.sh
 COPY . .
 
 RUN poetry run python ./manage.py collectstatic --noinput
+RUN poetry run python manage.py compress --force
 
 # Run entrypoint script
 ENTRYPOINT ["/docker-entrypoint.sh"]

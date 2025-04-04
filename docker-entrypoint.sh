@@ -87,6 +87,7 @@ END
 
     echo >&2 "Collecting static files..."
     poetry run python manage.py collectstatic --noinput
+    poetry run python manage.py compress --force
     
     # Run the actual command (runserver)
     exec poetry run "$@"
