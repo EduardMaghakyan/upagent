@@ -42,8 +42,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgstreamer-plugins-base1.0-0 \
     libgstreamer-gl1.0-0 \
     libgstreamer1.0-0 \
-    libgstreamer-plugins-bad1.0-0 &&
-    rm -rf /var/lib/apt/lists/*
+    libgstreamer-plugins-bad1.0-0 && rm -rf /var/lib/apt/lists/*
 
 # Install Poetry
 RUN python3 -m venv $POETRY_VENV
