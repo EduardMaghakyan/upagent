@@ -1,0 +1,29 @@
+@import "tailwindcss";
+@import "flowbite/src/themes/default";
+@plugin "flowbite/plugin";
+@source "../../node_modules/flowbite";
+
+.timeline-item {
+    display: inline-block;
+    width: 8px;
+    height: 24px;
+    margin-right: 2px;
+    border-radius: 2px;
+}
+
+.timeline-up {
+    background-color: #4ade80;
+}
+
+.timeline-down {
+    background-color: #f87171;
+}
+
+.timeline-unknown {
+    background-color: #9ca3af;
+}
+
+.timeline-item:hover {
+    transform: scaleY(1.1);
+    transition: transform 0.2s ease;
+}

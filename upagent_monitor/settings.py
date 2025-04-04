@@ -19,7 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
-    "whitenoise.runserver_nostatic",
+    # Remove whitenoise.runserver_nostatic to avoid conflicts with django-compressor
     "django.contrib.staticfiles",
     "compressor",
     "django.contrib.sites",
@@ -32,11 +32,9 @@ INSTALLED_APPS = [
 
 SITE_ID = 1
 
-
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "monitor_list"
 LOGOUT_REDIRECT_URL = "login"
-
 
 EMAIL_BACKEND = "postmarker.django.backend.EmailBackend"
 
@@ -47,7 +45,6 @@ DEFAULT_FROM_EMAIL = POSTMARK_SENDER
 if not POSTMARK_TOKEN:
     EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
     print("WARNING: Postmark API key not set, emails will be sent to console")
-
 
 POSTMARK = {
     "TOKEN": POSTMARK_TOKEN,
@@ -121,19 +118,45 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Internationalization
-# https://docs.djangoproject.com/en/4.2/topics/i18n/
-
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+# Static files configuration
 STATIC_URL = "/staticfiles/"
 
+# Fix the circular reference - separate source and destination directories
 STATICFILES_DIRS = [
-    BASE_DIR / "staticfiles",
+    BASE_DIR / "static",  # Source directory for static files
 ]
-STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+STATIC_ROOT = BASE_DIR / "staticfiles"  # Destination for collected static files
 
+# Static files finders - properly configured for compressor
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'compressor.finders.CompressorFinder',
+]
+
+# WhiteNoise configuration - using a storage that works with compressor
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Allow WhiteNoise to compress files that have been compressed by django-compressor
+WHITENOISE_KEEP_ONLY_HASHED_FILES = False
+
+# Django Compressor settings
+COMPRESS_ENABLED = True
+COMPRESS_OFFLINE = not DEBUG  # Generate compressed files during deployment
+COMPRESS_ROOT = STATIC_ROOT
+COMPRESS_OUTPUT_DIR = 'compressed'  # Output directory for compressed files
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.rCSSMinFilter',
+]
+COMPRESS_JS_FILTERS = [
+    'compressor.filters.jsmin.JSMinFilter',
+]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -174,7 +197,7 @@ LOGGING = {
     },
 }
 
-
+# Security settings
 if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
@@ -187,12 +210,6 @@ if not DEBUG:
     X_FRAME_OPTIONS = "DENY"
     SECURE_REFERRER_POLICY = "same-origin"
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-
-# Compressor settings
-COMPRESS_ROOT = BASE_DIR / "staticfiles"
-COMPRESS_ENABLED = True
-STATICFILES_FINDERS = ("compressor.finders.CompressorFinder",)
-
 
 # Email context variables
 SITE_URL = os.environ.get("SITE_URL", "https://www.uptimesense.com/")
@@ -208,7 +225,6 @@ SESSION_COOKIE_SECURE = not DEBUG  # True in production
 
 # Two-factor authentication settings
 TWO_FACTOR_EMAIL_OTP_EXPIRY_MINUTES = 10  # OTP expiry time in minutes
-
 
 # RQ settings
 RQ_QUEUES = {
@@ -226,22 +242,4 @@ RQ_QUEUES = {
     },
 }
 
-# If you want to use password for Redis
-# RQ_QUEUES = {
-#     'default': {
-#         'HOST': 'localhost',
-#         'PORT': 6379,
-#         'DB': 0,
-#         'PASSWORD': 'your-password',
-#         'DEFAULT_TIMEOUT': 360,
-#     },
-#     # ... other queues
-# }
-
 RQ_SCHEDULER_QUEUE = "default"
-
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-    },
-}
