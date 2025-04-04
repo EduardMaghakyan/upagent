@@ -127,8 +127,7 @@ LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
-STATIC_HOST = os.environ.get("DJANGO_STATIC_HOST", "")
-STATIC_URL = STATIC_HOST + "/static/"
+STATIC_URL = "/staticfiles/"
 
 STATICFILES_DIRS = [
     BASE_DIR / "staticfiles",
