@@ -2,9 +2,10 @@ import logging
 import django_rq
 from django.core.management.base import BaseCommand
 from django.utils import timezone
+from flow_monitors.models import FlowMonitor
 
 from monitors.models import Monitor
-from monitors.tasks import perform_check
+from monitors.tasks import perform_check, perform_flow_check
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +74,52 @@ class Command(BaseCommand):
                 self.stdout.write(
                     f"Scheduled monitor: {monitor.name} - every {interval} seconds"
                 )
+        flow_monitors = FlowMonitor.objects.all()
+        self.stdout.write(f"Found {len(flow_monitors)} flow monitors to schedule")
 
+        for flow_monitor in flow_monitors:
+            # Get the interval in seconds
+            interval = flow_monitor.interval_seconds
+
+            # Check if this flow monitor is already scheduled
+            scheduled_job = None
+            for job in scheduler.get_jobs():
+                if hasattr(job, "meta") and job.meta.get("flow_id") == str(
+                    flow_monitor.id
+                ):
+                    scheduled_job = job
+                    break
+
+            # If the job exists and the interval has changed, cancel it
+            if scheduled_job and scheduled_job.meta.get("interval") != interval:
+                self.stdout.write(
+                    f"Removing outdated job for flow: {flow_monitor.name}"
+                )
+                scheduled_job.cancel()
+                scheduled_job = None
+
+            # Schedule a new job if needed
+            if not scheduled_job:
+                job = scheduler.schedule(
+                    scheduled_time=timezone.now(),
+                    func=perform_flow_check,
+                    args=[str(flow_monitor.id)],
+                    interval=interval,
+                    repeat=None,  # Repeat indefinitely
+                )
+
+                # Store metadata about this job
+                job.meta = {
+                    "flow_id": str(flow_monitor.id),
+                    "flow_name": flow_monitor.name,
+                    "interval": interval,
+                    "scheduled_at": timezone.now().isoformat(),
+                }
+                job.save_meta()
+
+                self.stdout.write(
+                    f"Scheduled flow: {flow_monitor.name} - every {interval} seconds"
+                )
         self.stdout.write(
             self.style.SUCCESS(f"Successfully scheduled {len(monitors)} monitors")
         )

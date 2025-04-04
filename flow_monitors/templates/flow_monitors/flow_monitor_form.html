@@ -1,0 +1,90 @@
+{# flow_monitors/templates/flow_monitors/flow_monitor_form.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - UptimeSense{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Step {{ step }} of {{ total_steps }}: Basic Information</p>
+</div>
+
+<div class="bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-5">
+            <label for="{{ form.name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Flow Name
+                <span class="text-red-500">*</span>
+            </label>
+            {{ form.name }}
+            {% if form.name.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                {% for error in form.name.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-5">
+            <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Description
+            </label>
+            {{ form.description }}
+            {% if form.description.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                {% for error in form.description.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Describe what this flow is checking for.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="{{ form.starting_url.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Starting URL
+                <span class="text-red-500">*</span>
+            </label>
+            {{ form.starting_url }}
+            {% if form.starting_url.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                {% for error in form.starting_url.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">The URL where your flow starts, e.g., your product page.</p>
+        </div>
+
+        <div class="mb-5">
+            <label for="{{ form.interval_seconds.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                Check Frequency
+                <span class="text-red-500">*</span>
+            </label>
+            {{ form.interval_seconds }}
+            {% if form.interval_seconds.errors %}
+            <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                {% for error in form.interval_seconds.errors %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">How often this flow should be checked.</p>
+        </div>
+
+        <div class="mt-6 flex flex-wrap gap-2">
+            <button type="submit"
+                class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                Continue to Add Steps
+            </button>
+            <a href="{% url 'flow_monitor_list' %}"
+                class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,235 @@
+{# flow_monitors/templates/flow_monitors/flow_step_form.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - UptimeSense{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Add steps to your flow. Each step represents a user action like clicking a button or filling a form.</p>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Current Steps List -->
+    <div class="lg:col-span-1 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Current Steps</h2>
+        
+        {% if current_steps %}
+        <ol class="relative border-s border-gray-200 dark:border-gray-700 ms-3.5">
+            {% for step in current_steps %}
+            <li class="mb-6 ms-6">
+                <span class="absolute flex items-center justify-center w-6 h-6 bg-gray-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-800 dark:bg-gray-700">
+                    <span class="text-xs font-medium text-gray-800 dark:text-gray-300">{{ step.sequence }}</span>
+                </span>
+                <h3 class="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                    {{ step.description }}
+                </h3>
+                <p class="text-sm font-normal text-gray-500 dark:text-gray-400">
+                    {% if step.action_type == 'navigate' %}
+                    Navigate to: {{ step.url }}
+                    {% elif step.action_type == 'click' %}
+                    Click on: {{ step.element_description }}
+                    {% elif step.action_type == 'fill' %}
+                    Fill "{{ step.element_description }}" with: {{ step.input_value }}
+                    {% elif step.action_type == 'wait' %}
+                    Wait for: {{ step.element_description }}
+                    {% elif step.action_type == 'verify' %}
+                    Verify: {{ step.element_description }} exists
+                    {% endif %}
+                </p>
+            </li>
+            {% endfor %}
+        </ol>
+        {% else %}
+        <div class="flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-700 dark:text-blue-400" role="alert">
+            <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+            </svg>
+            <span class="sr-only">Info</span>
+            <div>
+                No steps added yet. Use the form to add your first step.
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Add Step Form -->
+    <div class="lg:col-span-2 bg-white dark:bg-gray-800 shadow-md rounded-lg p-6">
+        <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Step {{ next_step_number }}: Add Action</h2>
+        
+        <form method="post" novalidate>
+            {% csrf_token %}
+            
+            <div class="mb-5">
+                <label for="{{ form.action_type.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Action Type
+                    <span class="text-red-500">*</span>
+                </label>
+                {{ form.action_type }}
+                {% if form.action_type.errors %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                    {% for error in form.action_type.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Select the type of action for this step.</p>
+            </div>
+            
+            <div class="mb-5">
+                <label for="{{ form.description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Step Description
+                    <span class="text-red-500">*</span>
+                </label>
+                {{ form.description }}
+                {% if form.description.errors %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                    {% for error in form.description.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Describe this step in a way that's easy to understand.</p>
+            </div>
+            
+            <div class="mb-5 action-field navigate-field">
+                <label for="{{ form.url.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    URL to Navigate to
+                    <span class="text-red-500">*</span>
+                </label>
+                {{ form.url }}
+                {% if form.url.errors %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                    {% for error in form.url.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">The URL to navigate to for this step.</p>
+            </div>
+            
+            <div class="mb-5 action-field click-field fill-field wait-field verify-field">
+                <label for="{{ form.element_description.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Element Description
+                    <span class="text-red-500">*</span>
+                </label>
+                {{ form.element_description }}
+                {% if form.element_description.errors %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                    {% for error in form.element_description.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Describe the element to interact with (e.g., "Add to Cart" for a button with that text).</p>
+            </div>
+            
+            <div class="mb-5 action-field fill-field">
+                <label for="{{ form.input_value.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                    Value to Input
+                    <span class="text-red-500">*</span>
+                </label>
+                {{ form.input_value }}
+                {% if form.input_value.errors %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                    {% for error in form.input_value.errors %}
+                    <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">The value to type in the form field.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                <div>
+                    <label for="{{ form.timeout_seconds.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Timeout (seconds)
+                    </label>
+                    {{ form.timeout_seconds }}
+                    {% if form.timeout_seconds.errors %}
+                    <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                        {% for error in form.timeout_seconds.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">How long to wait for the action to complete.</p>
+                </div>
+                
+                <div>
+                    <label for="{{ form.wait_time_seconds.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                        Wait After Action (seconds)
+                    </label>
+                    {{ form.wait_time_seconds }}
+                    {% if form.wait_time_seconds.errors %}
+                    <div class="mt-2 text-sm text-red-600 dark:text-red-500">
+                        {% for error in form.wait_time_seconds.errors %}
+                        <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Additional wait time after completing the action.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex flex-wrap gap-2">
+                <button type="submit" name="add_step"
+                    class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                    Add Step
+                </button>
+                
+                <button type="submit" name="done"
+                    class="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    Finish
+                </button>
+                
+                <a href="{% url 'flow_monitor_list' %}"
+                    class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-gray-700 focus:z-10 focus:ring-4 focus:ring-gray-100 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to toggle fields based on action type
+    function toggleActionFields() {
+        const actionType = document.getElementById('id_action_type').value;
+        
+        // Hide all action-specific fields
+        document.querySelectorAll('.action-field').forEach(field => {
+            field.style.display = 'none';
+        });
+        
+        // Show fields based on action type
+        if (actionType === 'navigate') {
+            document.querySelectorAll('.navigate-field').forEach(field => {
+                field.style.display = 'block';
+            });
+        } else if (actionType === 'click') {
+            document.querySelectorAll('.click-field').forEach(field => {
+                field.style.display = 'block';
+            });
+        } else if (actionType === 'fill') {
+            document.querySelectorAll('.fill-field').forEach(field => {
+                field.style.display = 'block';
+            });
+        } else if (actionType === 'wait' || actionType === 'verify') {
+            document.querySelectorAll('.wait-field, .verify-field').forEach(field => {
+                field.style.display = 'block';
+            });
+        }
+    }
+
+    // Run on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleActionFields();
+        
+        // Listen for changes to the action type
+        document.getElementById('id_action_type').addEventListener('change', toggleActionFields);
+    });
+</script>
+{% endblock %}

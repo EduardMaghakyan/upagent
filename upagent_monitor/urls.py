@@ -10,6 +10,7 @@ urlpatterns = [
     path("accounts/", include("authentication.urls")),
     path("django-rq/", include("django_rq.urls")),
     path("support/", include("support.urls")),
+    path("flows/", include("flow_monitors.urls")),
 ]
 
 

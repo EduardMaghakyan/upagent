@@ -115,3 +115,24 @@ def _send_recovery_notification(monitor, downtime_duration):
             logger.exception(
                 f"Error sending recovery notification to {user.email}: {str(e)}"
             )
+
+
+def perform_flow_check(flow_id):
+    try:
+        # Import here to avoid circular imports
+        from flow_monitors.services.runner import run_flow
+        import asyncio
+
+        logger.info(f"Starting flow check for flow_id: {flow_id}")
+
+        # Run the flow check (need to handle async function in sync context)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        result = loop.run_until_complete(run_flow(flow_id))
+        loop.close()
+
+        logger.info(f"Flow check completed: {result}")
+        return result
+    except Exception as e:
+        logger.exception(f"Error checking flow {flow_id}: {str(e)}")
+        return {"error": str(e)}

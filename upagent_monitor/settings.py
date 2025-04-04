@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "status_page",
     "authentication",
     "support",
+    "flow_monitors",
 ]
 
 SITE_ID = 1

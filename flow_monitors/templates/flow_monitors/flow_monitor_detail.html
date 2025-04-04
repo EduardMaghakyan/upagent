@@ -1,0 +1,235 @@
+{# flow_monitors/templates/flow_monitors/flow_monitor_detail.html #}
+{% extends 'base.html' %}
+
+{% block title %}{{ flow.name }} - UptimeSense{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ flow.name }}</h1>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'flow_monitor_check_now' flow.id %}"
+            class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">
+            Check Now
+        </a>
+        <a href="{% url 'flow_monitor_delete' flow.id %}"
+            class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+            Delete
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+    <!-- Flow Info -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Flow Information</h2>
+        <dl class="max-w-md text-gray-900 divide-y divide-gray-200 dark:text-white dark:divide-gray-700">
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Starting URL</dt>
+                <dd class="font-semibold break-all">{{ flow.starting_url }}</dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Check Interval</dt>
+                <dd class="font-semibold">
+                    {% if flow.interval_seconds == 3600 %}
+                    Every hour
+                    {% elif flow.interval_seconds == 7200 %}
+                    Every 2 hours
+                    {% elif flow.interval_seconds == 14400 %}
+                    Every 4 hours
+                    {% elif flow.interval_seconds == 28800 %}
+                    Every 8 hours
+                    {% elif flow.interval_seconds == 43200 %}
+                    Every 12 hours
+                    {% elif flow.interval_seconds == 86400 %}
+                    Daily
+                    {% else %}
+                    Every {{ flow.interval_seconds }} seconds
+                    {% endif %}
+                </dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Steps</dt>
+                <dd class="font-semibold">{{ steps.count }}</dd>
+            </div>
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Created</dt>
+                <dd class="font-semibold">{{ flow.created_at|date:"Y-m-d H:i:s" }}</dd>
+            </div>
+            {% if flow.description %}
+            <div class="flex flex-col py-3">
+                <dt class="mb-1 text-gray-500 dark:text-gray-400">Description</dt>
+                <dd class="font-semibold">{{ flow.description }}</dd>
+            </div>
+            {% endif %}
+        </dl>
+    </div>
+
+    <!-- Status Overview -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Status Overview</h2>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Total Checks</div>
+                <div class="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
+                    {{ total_checks }}
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Success Rate</div>
+                <div class="mt-1 text-xl font-semibold 
+                    {% if success_rate >= 99 %}text-green-600 dark:text-green-400
+                    {% elif success_rate >= 90 %}text-yellow-600 dark:text-yellow-400
+                    {% elif success_rate > 0 %}text-red-600 dark:text-red-400
+                    {% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                    {% if total_checks > 0 %}
+                    {{ success_rate|floatformat:1 }}%
+                    {% else %}
+                    -
+                    {% endif %}
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg col-span-2">
+                <div class="text-gray-500 dark:text-gray-400 text-sm">Latest Status</div>
+                <div class="mt-1 text-xl font-semibold 
+                    {% if checks.0.is_successful %}text-green-600 dark:text-green-400
+                    {% elif checks %}text-red-600 dark:text-red-400
+                    {% else %}text-gray-600 dark:text-gray-400{% endif %}">
+                    {% if checks %}
+                    {% if checks.0.is_successful %}Successful{% else %}Failed{% endif %}
+                    {% else %}
+                    Not yet checked
+                    {% endif %}
+                </div>
+                {% if checks and not checks.0.is_successful %}
+                <div class="mt-2 text-sm text-red-600 dark:text-red-400">
+                    {{ checks.0.error_message }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Flow Steps -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Flow Steps</h2>
+    
+    {% if steps %}
+    <ol class="relative border-s border-gray-200 dark:border-gray-700 ms-3.5">
+        {% for step in steps %}
+        <li class="mb-6 ms-6">
+            <span class="absolute flex items-center justify-center w-6 h-6 bg-gray-100 rounded-full -start-3 ring-8 ring-white dark:ring-gray-800 dark:bg-gray-700">
+                <span class="text-xs font-medium text-gray-800 dark:text-gray-300">{{ step.sequence }}</span>
+            </span>
+            <h3 class="flex items-center mb-1 text-lg font-semibold text-gray-900 dark:text-white">
+                {{ step.description }}
+                <span class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300 ms-3">
+                    {{ step.get_action_type_display }}
+                </span>
+            </h3>
+            <p class="text-base font-normal text-gray-500 dark:text-gray-400">
+                {% if step.action_type == 'navigate' %}
+                Navigate to: <span class="font-medium">{{ step.url }}</span>
+                {% elif step.action_type == 'click' %}
+                Click on element: <span class="font-medium">{{ step.element_description }}</span>
+                {% elif step.action_type == 'fill' %}
+                Fill field "<span class="font-medium">{{ step.element_description }}</span>" with value: <span class="font-medium">{{ step.input_value }}</span>
+                {% elif step.action_type == 'wait' %}
+                Wait for element: <span class="font-medium">{{ step.element_description }}</span>
+                {% elif step.action_type == 'verify' %}
+                Verify element exists: <span class="font-medium">{{ step.element_description }}</span>
+                {% endif %}
+            </p>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                {% if step.timeout_seconds != 30 %}
+                Timeout: {{ step.timeout_seconds }} seconds
+                {% endif %}
+                {% if step.wait_time_seconds > 0 %}
+                | Wait after: {{ step.wait_time_seconds }} seconds
+                {% endif %}
+            </p>
+        </li>
+        {% endfor %}
+    </ol>
+    {% else %}
+    <div class="flex items-center p-4 mb-4 text-sm text-blue-800 rounded-lg bg-blue-50 dark:bg-gray-700 dark:text-blue-400" role="alert">
+        <svg class="flex-shrink-0 inline w-4 h-4 me-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+        </svg>
+        <span class="sr-only">Info</span>
+        <div>
+            No steps defined for this flow. This flow cannot be checked.
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Recent Checks -->
+<div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <h2 class="text-xl font-semibold mb-4 text-gray-900 dark:text-white">Recent Checks</h2>
+    {% if checks %}
+    <div class="relative overflow-x-auto">
+        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                <tr>
+                    <th scope="col" class="px-6 py-3">
+                        Time
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Status
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Duration
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Failed Step
+                    </th>
+                    <th scope="col" class="px-6 py-3">
+                        Error
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for check in checks %}
+                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+                    <td class="px-6 py-4">
+                        {{ check.created_at|date:"Y-m-d H:i:s" }}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if check.is_successful %}
+                        <span
+                            class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                            Successful
+                        </span>
+                        {% else %}
+                        <span
+                            class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                            Failed
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {{ check.total_time|floatformat:1 }} seconds
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if check.error_step %}
+                        Step {{ check.error_step.sequence }}: {{ check.error_step.description }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-red-500 dark:text-red-400 max-w-md truncate">
+                        {{ check.error_message|default:"-" }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center p-4">
+        <p class="text-gray-500 dark:text-gray-400">No checks recorded yet. Click "Check Now" to run a manual check.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

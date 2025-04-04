@@ -1,0 +1,107 @@
+{# flow_monitors/templates/flow_monitors/flow_monitor_list.html #}
+{% extends 'base.html' %}
+{% block title %}Flow Monitors - UptimeSense{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Flow Monitors</h1>
+    <a href="{% url 'flow_monitor_create' %}"
+        class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">
+        Add New Flow Monitor
+    </a>
+</div>
+
+{% if flow_monitors %}
+<div class="relative overflow-x-auto rounded-lg">
+    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-900 uppercase dark:text-gray-400">
+            <tr>
+                <th scope="col" class="px-6 py-3">
+                    Name
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    URL
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Steps
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Status
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Last Checked
+                </th>
+                <th scope="col" class="px-6 py-3">
+                    Actions
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for flow in flow_monitors %}
+            <tr class="bg-white dark:bg-gray-800">
+                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <a href="{% url 'flow_monitor_detail' flow.id %}"
+                        class="text-gray-600 dark:text-gray-500 hover:underline">
+                        {{ flow.name }}
+                    </a>
+                </th>
+                <td class="px-6 py-4 max-w-xs truncate">
+                    {{ flow.starting_url }}
+                </td>
+                <td class="px-6 py-4">
+                    {{ flow.step_count }}
+                </td>
+                <td class="px-6 py-4">
+                    {% if flow.status == "Successful" %}
+                    <span
+                        class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300">
+                        {{ flow.status }}
+                    </span>
+                    {% elif flow.status == "Failed" %}
+                    <span
+                        class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">
+                        {{ flow.status }}
+                    </span>
+                    {% else %}
+                    <span
+                        class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-gray-700 dark:text-gray-300">
+                        {{ flow.status }}
+                    </span>
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4">
+                    {% if flow.last_checked %}
+                    {{ flow.last_checked|date:"Y-m-d H:i:s" }}
+                    {% else %}
+                    Never
+                    {% endif %}
+                </td>
+                <td class="px-6 py-4 flex gap-2">
+                    <a href="{% url 'flow_monitor_check_now' flow.id %}"
+                        class="font-medium text-gray-600 dark:text-gray-500 hover:underline">Check</a>
+                    <a href="{% url 'flow_monitor_detail' flow.id %}"
+                        class="font-medium text-gray-600 dark:text-gray-500 hover:underline">View</a>
+                    <a href="{% url 'flow_monitor_delete' flow.id %}"
+                        class="font-medium text-red-600 dark:text-red-500 hover:underline">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="p-8 text-center bg-white dark:bg-gray-800 rounded-lg shadow">
+    <svg class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M10 11V6m0 8h.01M19 10a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+    <h3 class="mb-2 text-xl font-semibold text-gray-900 dark:text-white">No flow monitors created yet</h3>
+    <p class="mb-4 text-gray-500 dark:text-gray-400">Start monitoring your user flows by creating your first flow monitor.</p>
+    <a href="{% url 'flow_monitor_create' %}"
+        class="text-white bg-gray-700 hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-gray-600 dark:hover:bg-gray-700 focus:outline-none dark:focus:ring-gray-800">
+        Create Your First Flow Monitor
+    </a>
+</div>
+{% endif %}
+{% endblock %}
