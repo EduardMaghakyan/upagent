@@ -1,0 +1,80 @@
+alerts:
+- rule: DEPLOYMENT_FAILED
+- rule: DOMAIN_FAILED
+databases:
+- engine: PG
+  name: uptimesense-db
+- cluster_name: uptimesense-redis
+  engine: REDIS
+  name: uptimesense-redis
+  production: true
+  version: "7"
+domains:
+- domain: app.uptimesense.com
+  type: PRIMARY
+envs:
+- key: DATABASE_URL
+  scope: RUN_AND_BUILD_TIME
+  value: ${uptimesense-db.DATABASE_URL}
+- key: POSTMARK_SENDER
+  scope: RUN_AND_BUILD_TIME
+  value: bot@aassist.ai
+- key: POSTMARK_SERVER_TOKEN
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:cn7jaVmgbn53By9VKN2F2biL29yKOn14:J+TpK/acNiJUHnAyFHG3UWDiebzlJxVKr8hJbZwNXWqIrWMZtkdKNV3flMZhZ/d6o82K1A==]
+- key: SECRET_KEY
+  scope: RUN_AND_BUILD_TIME
+  type: SECRET
+  value: EV[1:QHeiU1MnE2FCvV2+xhfAbx4evuQX6xQr:6o/38yyqUWO8o9XIZjEU18zjCA5hoF5Py5RhDTCQC8c2XAlFBTSUIfyw7tpiYjUw/xLdRU96Lbwe/S11SP6k31O+VY8ijQq/Hds1R8h/yXK2DJFBJXDM63jL75jdIUfsLjKkZq227ENG8TZv29UzFWM=]
+- key: RQ_REDIS_URL
+  scope: RUN_AND_BUILD_TIME
+  value: ${uptimesense-redis.REDIS_URL}
+- key: DJANGO_ALLOWED_HOSTS
+  scope: RUN_AND_BUILD_TIME
+  value: app.uptimesense.com,uptimesense.com,goldfish-app-mb3lx.ondigitalocean.app
+features:
+- buildpack-stack=ubuntu-22
+ingress:
+  rules:
+  - component:
+      name: upagent
+    match:
+      path:
+        prefix: /
+name: goldfish-app
+region: fra
+services:
+- dockerfile_path: /Dockerfile
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: EduardMaghakyan/upagent
+  http_port: 8000
+  instance_count: 2
+  instance_size_slug: apps-s-1vcpu-1gb
+  name: upagent
+  run_command: gunicorn upagent_monitor.wsgi:application --bind 0.0.0.0:8000 --workers
+    4 --timeout 120
+  source_dir: /
+workers:
+- dockerfile_path: /Dockerfile
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: EduardMaghakyan/upagent
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-1gb
+  name: worker
+  run_command: poetry run python manage.py rqworker default high low
+  source_dir: /
+- dockerfile_path: /Dockerfile
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: EduardMaghakyan/upagent
+  instance_count: 1
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  name: scheduler
+  run_command: poetry run python manage.py rqscheduler
+  source_dir: /
